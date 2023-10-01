@@ -7,22 +7,38 @@ from flask_login import LoginManager
 import os
 
 
+
+# Database selector: 'oracle' or 'sqlite'
+DATABASE = 'sqlite'  # Change to 'oracle' to use Oracle
+
 db = SQLAlchemy()
-DB_NAME = "database.db"
+APP_ROOT = os.path.dirname(os.path.abspath(__file__))
+UPLOAD_FOLDER = os.path.join(APP_ROOT, 'static')
+
+# Initialize database URI and engine
+SQLALCHEMY_DATABASE_URI = None
+engine = None
+
+# Oracle setup
+if DATABASE == 'oracle':
+    DIALECT = 'oracle'
+    SQL_DRIVER = 'cx_oracle'
+    USERNAME = 'c##se'  # enter your username
+    PASSWORD = 'a1234'  # enter your password
+    HOST = 'localhost'  # enter the oracle db host url
+    PORT = 1521  # enter the oracle port number
+    SERVICE = 'orcl'  # enter the oracle db service name
+    SQLALCHEMY_DATABASE_URI = DIALECT + '+' + SQL_DRIVER + '://' + USERNAME + ':' + PASSWORD + '@' + HOST + ':' + str(
+        PORT) + '/?service_name=' + SERVICE
+    engine = create_engine(SQLALCHEMY_DATABASE_URI)
+
+# SQLite setup
+elif DATABASE == 'sqlite':
+    DB_NAME = "database.db"
+    SQLALCHEMY_DATABASE_URI = f"sqlite:///{DB_NAME}"
+    engine = create_engine(SQLALCHEMY_DATABASE_URI)
+
 loginn_manager = LoginManager()
-
-DIALECT = 'oracle'
-SQL_DRIVER = 'cx_oracle'
-USERNAME = 'c##se'  # enter your username
-PASSWORD = 'a1234'  # enter your password
-HOST = 'localhost'  # enter the oracle db host url
-PORT = 1521  # enter the oracle port number
-SERVICE = 'orcl'  # enter the oracle db service name
-ENGINE_PATH_WIN_AUTH = DIALECT + '+' + SQL_DRIVER + '://' + USERNAME + ':' + PASSWORD + '@' + HOST + ':' + str(
-    PORT) + '/?service_name=' + SERVICE
-
-engine = create_engine(ENGINE_PATH_WIN_AUTH)
-
 
 # #test query
 # import pandas as pd
@@ -30,15 +46,24 @@ engine = create_engine(ENGINE_PATH_WIN_AUTH)
 # print(test_df)
 
 def create_app():
+    # app = Flask(__name__)
+    # app.config['SECRET_KEY'] = 'fsfhsdfhsufsfsifd'
+    # app.config['SQLALCHEMY_DATABASE_URI'] = ENGINE_PATH_WIN_AUTH
+    #
+    # APP_ROOT = os.path.dirname(os.path.abspath(__file__))
+    # UPLOAD_FOLDER = os.path.join(APP_ROOT, 'static')
+    # app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+    #
+    # db.init_app(app)
+
     app = Flask(__name__)
     app.config['SECRET_KEY'] = 'fsfhsdfhsufsfsifd'
-    app.config['SQLALCHEMY_DATABASE_URI'] = ENGINE_PATH_WIN_AUTH
-
-    APP_ROOT = os.path.dirname(os.path.abspath(__file__))
-    UPLOAD_FOLDER = os.path.join(APP_ROOT, 'static')
+    app.config['SQLALCHEMY_DATABASE_URI'] = SQLALCHEMY_DATABASE_URI
     app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
     db.init_app(app)
+
+
 
     # login = LoginManager(app)
     # login.login_view = 'views.home'
